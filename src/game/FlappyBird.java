@@ -8,6 +8,7 @@ import javax.swing.*;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import java.awt.geom.AffineTransform;
 
 public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     int boardWidth = 2400;
@@ -24,8 +25,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     //bird class
     int birdX = boardWidth/15;
     int birdY = boardHeight/10;
-    int birdWidth = 90;
-    int birdHeight = 90;
+    int birdWidth = 100;
+    int birdHeight = 100;
 
     class Bird {
         int x = birdX;
@@ -69,11 +70,11 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     // Sistema de velocidade progressiva
     private double baseVelocity = -10; // Velocidade inicial
     private double currentVelocity = -10; // Velocidade atual
-    private double velocityIncrement = 1.5; // Incremento a cada 20 pontos
+    private double velocityIncrement = 2.0; // Incremento a cada 20 pontos
     private int pointsForIncrement = 20; // Pontos necessários para cada aumento
-    private int maxPointsForSpeed = 100; // Pontos máximos para aumento de velocidade
+    private int maxPointsForSpeed = 200; // Pontos máximos para aumento de velocidade
     private int lastSpeedIncreaseScore = 0; // Última pontuação em que a velocidade aumentou
-
+    private int backgroundOffsetX = 0; // Posição X do fundo
     ArrayList<Pipe> pipes;
     Random random = new Random();
 
@@ -103,7 +104,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         pipes = new ArrayList<Pipe>();
 
         //place pipes timer
-        placePipeTimer = new Timer(1500, new ActionListener() {
+        placePipeTimer = new Timer(800, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 placePipes();
@@ -135,13 +136,45 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         draw(g);
     }
 
-    public void draw(Graphics g) {
-        //background
+
+public void draw(Graphics g) {
+        
         g.drawImage(backgroundImg, 0, 0, this.boardWidth, this.boardHeight, null);
 
-        //bird
-        g.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height, null);
+       
+        Graphics2D g2d = (Graphics2D) g;
 
+        // Desenha o fundo movendo
+g.drawImage(backgroundImg, backgroundOffsetX, 0, this.boardWidth, this.boardHeight, null);
+// Desenha o fundo novamente ao lado pra preencher o espaço
+g.drawImage(backgroundImg, backgroundOffsetX + boardWidth, 0, this.boardWidth, this.boardHeight, null);
+   
+
+        AffineTransform oldTransform = g2d.getTransform();
+
+        
+        double rotation = Math.toRadians(velocityY * 4.0);
+
+        
+        rotation = Math.max(Math.toRadians(-25), Math.min(rotation, Math.toRadians(90)));
+
+        // --- 4. Define o Ponto de Rotação (o centro do pássaro) ---
+        int centerX = bird.x + bird.width / 2;
+        int centerY = bird.y + bird.height / 2;
+
+        // --- 5. Aplica a Rotação ---
+       
+        g2d.rotate(rotation, centerX, centerY);
+
+        // --- 6. Desenha o Pássaro (já rotacionado) ---
+        
+        g2d.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height, null);
+
+        // --- 7. Restaura o "pincel" ao estado original ---
+        // Remove a rotação para que o resto seja desenhado normalmente
+        g2d.setTransform(oldTransform);
+
+        // --- 8. Desenha Canos e Placar (sem rotação) ---
         //pipes
         for (int i = 0; i < pipes.size(); i++) {
             Pipe pipe = pipes.get(i);
@@ -162,6 +195,13 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     public void move() {
         // Atualiza velocidade baseada na pontuação
         updateGameSpeed();
+
+        backgroundOffsetX += (int) currentVelocity; // Move o fundo na mesma velocidade dos canos
+
+// Se passou do tamanho da tela, reinicia (efeito loop)
+            if (backgroundOffsetX < -boardWidth) {
+             backgroundOffsetX = 0;
+}
         
         //bird
         velocityY += gravity;
