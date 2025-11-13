@@ -31,6 +31,7 @@ public class GameMenu extends JPanel {
         skins.add(new BirdSkin("Pacman", "PACMAN.png", 20));
         skins.add(new BirdSkin("Blue Bird", "bluebird.png", 50));
         skins.add(new BirdSkin("Red Bird", "redbird.png", 200));
+        skins.add(new BirdSkin("Angry Bird", "angrybird.png",0));
         currentSkin = skins.get(0);
         currentSkin.unlock();
 

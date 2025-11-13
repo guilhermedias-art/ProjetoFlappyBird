@@ -5,6 +5,9 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Random;
 import javax.swing.*;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 
 public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     int boardWidth = 2400;
@@ -33,6 +36,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
         Bird(Image img) {
             this.img = img;
+            this.img = this.img.getScaledInstance(birdWidth, birdHeight, Image.SCALE_SMOOTH);
         }
     }
 
@@ -56,10 +60,19 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     }
 
     //game logic
+  //game logic
     Bird bird;
-    int velocityX = -10;
+    int velocityX = -10; // Velocidade base
     int velocityY = 10;
     int gravity = 1;
+
+    // Sistema de velocidade progressiva
+    private double baseVelocity = -10; // Velocidade inicial
+    private double currentVelocity = -10; // Velocidade atual
+    private double velocityIncrement = 1.5; // Incremento a cada 20 pontos
+    private int pointsForIncrement = 20; // Pontos necessários para cada aumento
+    private int maxPointsForSpeed = 100; // Pontos máximos para aumento de velocidade
+    private int lastSpeedIncreaseScore = 0; // Última pontuação em que a velocidade aumentou
 
     ArrayList<Pipe> pipes;
     Random random = new Random();
@@ -68,6 +81,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     Timer placePipeTimer;
     boolean gameOver = false;
     double score = 0;
+    private Clip Passagem_cano;
+    
 
     FlappyBird(GameMenu gameMenu) {
         this.gameMenu = gameMenu;
@@ -80,6 +95,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         birdImg = new ImageIcon(getClass().getResource("/resources/birds/flappybird.png")).getImage();
         topPipeImg = new ImageIcon(getClass().getResource("/resources/pipes/toppipe.png")).getImage();
         bottomPipeImg = new ImageIcon(getClass().getResource("/resources/pipes/bottompipe.png")).getImage();
+        
+        som_de_passagem();
 
         //bird
         bird = new Bird(birdImg);
@@ -143,6 +160,9 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     }
 
     public void move() {
+        // Atualiza velocidade baseada na pontuação
+        updateGameSpeed();
+        
         //bird
         velocityY += gravity;
         bird.y += velocityY;
@@ -151,11 +171,13 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         //pipes
         for (int i = 0; i < pipes.size(); i++) {
             Pipe pipe = pipes.get(i);
-            pipe.x += velocityX;
+            pipe.x += (int) currentVelocity; // Usa a velocidade atualizada
 
             if (!pipe.passed && bird.x > pipe.x + pipe.width) {
                 score += 0.5;
                 pipe.passed = true;
+                
+                som_Passagem();
             }
 
             if (collision(bird, pipe)) {
@@ -165,6 +187,57 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
         if (bird.y > boardHeight) {
             gameOver = true;
+        }
+    }
+    
+    
+    private void som_de_passagem() 
+    {
+    	
+    	try {
+            java.net.URL soundUrl = getClass().getResource("/resources/sounds/Passagem_bird.wav");
+            if (soundUrl != null) {
+                AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(soundUrl);
+                Passagem_cano = AudioSystem.getClip();
+                Passagem_cano.open(audioInputStream);
+                System.out.println("Som de passagem carregado com sucesso!");
+            } else {
+                System.out.println("Arquivo de som não encontrado: /resources/sounds/Passagem_bird.wav");
+            }
+        } catch (Exception e) {
+            System.out.println("Erro ao carregar som: " + e.getMessage());
+        }
+    }
+    	
+    
+    private void som_Passagem()
+    {
+        if (Passagem_cano != null) 
+        {
+            Passagem_cano.stop(); // Para o som se estiver tocando
+            Passagem_cano.setFramePosition(0); // Volta para o início
+            Passagem_cano.start(); // Toca o som
+        }
+    }
+ 
+
+    // Nova função para controlar a velocidade progressiva
+    private void updateGameSpeed() {
+        int currentScore = (int) score;
+        
+        // Verifica se atingiu uma nova marca de 20 pontos e não ultrapassou o máximo
+        if (currentScore >= lastSpeedIncreaseScore + pointsForIncrement && currentScore <= maxPointsForSpeed) {
+            currentVelocity = baseVelocity - (velocityIncrement * (currentScore / pointsForIncrement));
+            lastSpeedIncreaseScore = (currentScore / pointsForIncrement) * pointsForIncrement;
+            
+            System.out.println("Velocidade aumentada para: " + currentVelocity + " aos " + currentScore + " pontos");
+        }
+        
+        // Se passou de 100 pontos, mantém a velocidade dos 100 pontos
+        if (currentScore > maxPointsForSpeed && lastSpeedIncreaseScore < maxPointsForSpeed) {
+            currentVelocity = baseVelocity - (velocityIncrement * (maxPointsForSpeed / pointsForIncrement));
+            lastSpeedIncreaseScore = maxPointsForSpeed;
+            System.out.println("Velocidade máxima atingida: " + currentVelocity);
         }
     }
 
@@ -192,6 +265,11 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         pipes.clear();
         gameOver = false;
         score = 0;
+        
+        // Reseta o sistema de velocidade
+        currentVelocity = baseVelocity;
+        lastSpeedIncreaseScore = 0;
+        
         gameLoop.start();
         placePipeTimer.start();
     }
