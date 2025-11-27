@@ -4,6 +4,8 @@ import javax.swing.*;
 
 public class App {
     public static void main(String[] args) throws Exception {
+        SplashScreen splash = new SplashScreen();
+        splash.showSplash(7500); // duração do GIF em ms (7,5s)
         int boardWidth = 2400;
         int boardHeight = 1200;
 
