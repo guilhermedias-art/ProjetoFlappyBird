@@ -82,11 +82,14 @@ public class GameMenu extends JPanel {
 
         menuPanel.add(Box.createVerticalGlue());
 
+        // Add title text
         JLabel title = new JLabel("Flappy Bird");
-        title.setFont(new Font("Arial", Font.BOLD, 36));
+        title.setFont(loadCustomFont("/resources/fonts/FlappybirdyRegular-KaBW.ttf", 150f));
         title.setForeground(Color.WHITE);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         menuPanel.add(title);
+
+        // Add decorative image below title if available (doesn't replace the title)
 
         menuPanel.add(Box.createVerticalStrut(24));
 
@@ -110,7 +113,7 @@ public class GameMenu extends JPanel {
         } else {
             moneyLabel = new JLabel(String.valueOf(money));
         }
-        moneyLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        moneyLabel.setFont(loadCustomFont("/resources/fonts/FlappybirdyRegular-KaBW.ttf", 40f));
         moneyLabel.setForeground(Color.WHITE);
         moneyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         menuPanel.add(moneyLabel);
@@ -130,7 +133,7 @@ public class GameMenu extends JPanel {
         headerPanel.setOpaque(false);
 
         JLabel title = new JLabel("Shop");
-        title.setFont(new Font("Arial", Font.BOLD, 32));
+        title.setFont(loadCustomFont("/resources/fonts/FlappybirdyRegular-KaBW.ttf", 55f));
         title.setForeground(Color.WHITE);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         headerPanel.add(title);
@@ -144,7 +147,7 @@ public class GameMenu extends JPanel {
         } else {
             moneyLabel = new JLabel(String.valueOf(money));
         }
-        moneyLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        moneyLabel.setFont(loadCustomFont("/resources/fonts/FlappybirdyRegular-KaBW.ttf", 55f));
         moneyLabel.setForeground(Color.WHITE);
         moneyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         headerPanel.add(moneyLabel);
@@ -186,7 +189,7 @@ public class GameMenu extends JPanel {
 
             JLabel nameLabel = new JLabel(skin.getName());
             nameLabel.setForeground(Color.WHITE);
-            nameLabel.setFont(new Font("Arial", Font.BOLD, 16));
+            nameLabel.setFont(loadCustomFont("/resources/fonts/FlappybirdyRegular-KaBW.ttf", 30f));
             infoPanel.add(nameLabel);
 
             JLabel priceLabel;
@@ -203,7 +206,7 @@ public class GameMenu extends JPanel {
                 }
                 priceLabel.setForeground(Color.WHITE);
             }
-            priceLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+            priceLabel.setFont(loadCustomFont("/resources/fonts/FlappybirdyRegular-KaBW.ttf",20f));
             infoPanel.add(priceLabel);
 
             skinPanel.add(infoPanel);
@@ -307,11 +310,24 @@ public class GameMenu extends JPanel {
 
     private JButton createCenteredButton(String text) {
         JButton button = new JButton(text);
-        button.setFont(new Font("Arial", Font.BOLD, 20));
+        button.setFont(loadCustomFont("FlappybirdyRegular-KaBW.tff",  20f));
         button.setMaximumSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
         button.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         return button;
+    }
+
+    private Font loadCustomFont(String fontPath, float size) {
+        try {
+            java.net.URL fontUrl = getClass().getResource(fontPath);
+            if (fontUrl != null) {
+                Font customFont = Font.createFont(Font.TRUETYPE_FONT, fontUrl.openStream());
+                return customFont.deriveFont(size);
+            }
+        } catch (Exception e) {
+            System.err.println("Erro ao carregar fonte: " + e.getMessage());
+        }
+        return new Font("Arial", Font.BOLD, (int)size);
     }
 
     public void startGame() {
@@ -319,6 +335,8 @@ public class GameMenu extends JPanel {
         gamePanel.requestFocus();
         gamePanel.startGame();
     }
+
+    
 
     public void returnToMenu(int scoreEarned) {
         money += scoreEarned;

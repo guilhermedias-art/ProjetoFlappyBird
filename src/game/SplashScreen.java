@@ -5,10 +5,10 @@ import javax.swing.*;
 public class SplashScreen extends JWindow {
 
     public SplashScreen() {
-        java.net.URL imageUrl = getClass().getResource("/ui/loading.gif");
+        java.net.URL imageUrl = getClass().getResource("/resources/ui/loading.gif");
 
         if (imageUrl == null) {
-            System.err.println("AVISO: Arquivo loading.gif não encontrado em /ui/loading.gif");
+            System.err.println("AVISO: Arquivo loading.gif não encontrado ");
             JLabel label = new JLabel("Carregando...");
             add(label);
         } else {
