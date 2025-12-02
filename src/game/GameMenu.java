@@ -31,7 +31,7 @@ public class GameMenu extends JPanel {
         skins.add(new BirdSkin("Pacman", "PACMAN.png", 20));
         skins.add(new BirdSkin("Blue Bird", "bluebird.png", 50));
         skins.add(new BirdSkin("Red Bird", "redbird.png", 200));
-        currentSkin = skins.get(0);
+        currentSkin = skins.get(1);
         currentSkin.unlock();
 
         // Load saved data
@@ -113,7 +113,7 @@ public class GameMenu extends JPanel {
         } else {
             moneyLabel = new JLabel(String.valueOf(money));
         }
-        moneyLabel.setFont(loadCustomFont("/resources/fonts/FlappybirdyRegular-KaBW.ttf", 40f));
+        moneyLabel.setFont(loadCustomFont("/resources/fonts/Flappy-Bird.ttf", 40f));
         moneyLabel.setForeground(Color.WHITE);
         moneyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         menuPanel.add(moneyLabel);
@@ -133,7 +133,7 @@ public class GameMenu extends JPanel {
         headerPanel.setOpaque(false);
 
         JLabel title = new JLabel("Shop");
-        title.setFont(loadCustomFont("/resources/fonts/FlappybirdyRegular-KaBW.ttf", 55f));
+        title.setFont(loadCustomFont("/resources/fonts/Flappy-Bird.ttf", 55f));
         title.setForeground(Color.WHITE);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         headerPanel.add(title);
@@ -147,7 +147,7 @@ public class GameMenu extends JPanel {
         } else {
             moneyLabel = new JLabel(String.valueOf(money));
         }
-        moneyLabel.setFont(loadCustomFont("/resources/fonts/FlappybirdyRegular-KaBW.ttf", 55f));
+        moneyLabel.setFont(loadCustomFont("/resources/fonts/Flappy-Bird.ttf", 55f));
         moneyLabel.setForeground(Color.WHITE);
         moneyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         headerPanel.add(moneyLabel);
@@ -206,7 +206,7 @@ public class GameMenu extends JPanel {
                 }
                 priceLabel.setForeground(Color.WHITE);
             }
-            priceLabel.setFont(loadCustomFont("/resources/fonts/FlappybirdyRegular-KaBW.ttf",20f));
+            priceLabel.setFont(loadCustomFont("/resources/fonts/Flappy-Bird",15f));
             infoPanel.add(priceLabel);
 
             skinPanel.add(infoPanel);

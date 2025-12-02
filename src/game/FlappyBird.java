@@ -27,8 +27,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     //bird class
     int birdX = boardWidth/15;
     int birdY = boardHeight/10;
-    int birdWidth = 90;
-    int birdHeight = 90;
+    int birdWidth = 100;
+    int birdHeight = 100;
 
     class Bird {
         int x = birdX;
@@ -190,7 +190,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
         //score
         g.setColor(Color.white);
-        g.setFont(new Font("Arial", Font.PLAIN, 32));
+        g.setFont(loadCustomFont("/resources/fonts/Flappy-Bird.ttf", 70f));
+        
 
 if (gameOver) {
 
@@ -201,14 +202,9 @@ if (gameOver) {
     Font goFont = loadCustomFont("/resources/fonts/FlappybirdyRegular-KaBW.ttf", 200f);
     g.setFont(goFont);
 
-    // mede o texto
-    FontMetrics fm = g.getFontMetrics(goFont);
-    int textWidth = fm.stringWidth(text);
-    int textHeight = fm.getAscent();
-
     // centralização
-    int x = (boardWidth - textWidth) / 2;
-    int y = (boardHeight + textHeight) / 2;
+    int x = 450;
+    int y = 450;
 
     g.drawString(text, x, y);
 }
