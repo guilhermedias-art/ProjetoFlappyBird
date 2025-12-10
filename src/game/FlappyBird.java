@@ -13,8 +13,8 @@ import java.awt.geom.AffineTransform;
 
 
 public class FlappyBird extends JPanel implements ActionListener, KeyListener {
-    int boardWidth = 2400;
-    int boardHeight = 1200;
+    int boardWidth = 1920;
+    int boardHeight = 1080;
 
     private GameMenu gameMenu;
 
@@ -96,7 +96,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         addKeyListener(this);
 
         //load images
-        backgroundImg = new ImageIcon(getClass().getResource("/resources/backgrounds/2151120915.jpg")).getImage();
+        backgroundImg = new ImageIcon(getClass().getResource("/resources/backgrounds/2151120915(1).jpg")).getImage();
         birdImg = new ImageIcon(getClass().getResource("/resources/birds/flappybird.png")).getImage();
         topPipeImg = new ImageIcon(getClass().getResource("/resources/pipes/toppipe.png")).getImage();
         bottomPipeImg = new ImageIcon(getClass().getResource("/resources/pipes/bottompipe.png")).getImage();
@@ -145,11 +145,14 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     public void draw(Graphics g) 
 {
         //background
-        
-        g.drawImage(backgroundImg, 0, 0, this.boardWidth, this.boardHeight, null);
 
+        
        
         Graphics2D g2d = (Graphics2D) g;
+
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 
         // Desenha o fundo movendo
         g.drawImage(backgroundImg, backgroundOffsetX, 0, this.boardWidth, this.boardHeight, null);
@@ -186,6 +189,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         for (int i = 0; i < pipes.size(); i++) {
             Pipe pipe = pipes.get(i);
             g.drawImage(pipe.img, pipe.x, pipe.y, pipe.width, pipe.height, null);
+            
         }
 
         //score
@@ -236,6 +240,10 @@ else {
             Pipe pipe = pipes.get(i);
             pipe.x += (int) currentVelocity;
 
+            if (pipe.x + pipe.width < 0) {
+                     pipes.remove(i);
+                    i--;
+            }
 
             if (!pipe.passed && bird.x > pipe.x + pipe.width) {
                 score += 0.5;
@@ -382,7 +390,7 @@ public void keyReleased(KeyEvent e)
 {
    if (gameOver && e.getKeyCode() == KeyEvent.VK_SPACE) {
     canRestart = true;
-    gameMenu.returnToMenu((int)score);  // só volta quando o jogador APERTA de novo
+    gameMenu.returnToMenu((int)score);  // só volta quando o jogador APERTA de novo 
 }
 
 }

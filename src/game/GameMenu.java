@@ -17,6 +17,8 @@ public class GameMenu extends JPanel {
     private int money = 0;
     private BirdSkin currentSkin;
     private ImageIcon coinIcon;
+    private JLabel menuMoneyLabel;
+
 
     public GameMenu(int width, int height) {
         setPreferredSize(new Dimension(width, height));
@@ -29,9 +31,7 @@ public class GameMenu extends JPanel {
         skins = new ArrayList<>();
         skins.add(new BirdSkin("Normal","flappybird.png",0));
         skins.add(new BirdSkin("Pacman", "PACMAN.png", 20));
-        skins.add(new BirdSkin("Blue Bird", "bluebird.png", 50));
-        skins.add(new BirdSkin("Red Bird", "redbird.png", 200));
-        currentSkin = skins.get(1);
+        currentSkin = skins.get(0);
         currentSkin.unlock();
 
         // Load saved data
@@ -59,15 +59,6 @@ public class GameMenu extends JPanel {
             // ignore
         }
 
-        // coin icon
-        try {
-            java.net.URL res = getClass().getResource("/resources/ui/moeda.png");
-            if (res != null) coinIcon = new ImageIcon(res);
-            else coinIcon = null;
-        } catch (Exception ex) {
-            coinIcon = null;
-        }
-
         createMenuPanel();
         createShopPanel();
         createGamePanel(width, height);
@@ -75,9 +66,26 @@ public class GameMenu extends JPanel {
         cardLayout.show(mainPanel, "menu");
     }
 
+    public class BackgroundPanel extends JPanel {
+
+    private Image backgroundImage;
+
+    public BackgroundPanel(Image backgroundImage) {
+        this.backgroundImage = backgroundImage;
+        setLayout(new BorderLayout());
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+    }
+}
+
     private void createMenuPanel() {
-        JPanel menuPanel = new JPanel();
-        menuPanel.setBackground(new Color(122, 197, 205));
+        Image bg = new ImageIcon(getClass().getResource("/resources/backgrounds/imagem borrada.jpg")).getImage();
+        BackgroundPanel menuPanel = new BackgroundPanel(bg);
+
         menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
 
         menuPanel.add(Box.createVerticalGlue());
@@ -88,8 +96,6 @@ public class GameMenu extends JPanel {
         title.setForeground(Color.WHITE);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         menuPanel.add(title);
-
-        // Add decorative image below title if available (doesn't replace the title)
 
         menuPanel.add(Box.createVerticalStrut(24));
 
@@ -114,17 +120,20 @@ public class GameMenu extends JPanel {
             moneyLabel = new JLabel(String.valueOf(money));
         }
         moneyLabel.setFont(loadCustomFont("/resources/fonts/Flappy-Bird.ttf", 40f));
-        moneyLabel.setForeground(Color.WHITE);
+        moneyLabel.setForeground(Color.YELLOW);
         moneyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         menuPanel.add(moneyLabel);
+
+        menuMoneyLabel = moneyLabel;
+
 
         menuPanel.add(Box.createVerticalGlue());
         mainPanel.add(menuPanel, "menu");
     }
 
     private void createShopPanel() {
-        JPanel shopPanel = new JPanel();
-        shopPanel.setBackground(new Color(122, 197, 205));
+         Image bg = new ImageIcon(getClass().getResource("/resources/backgrounds/imagem borrada.jpg")).getImage();
+        BackgroundPanel shopPanel = new BackgroundPanel(bg);
         shopPanel.setLayout(new BorderLayout());
 
         JPanel headerPanel = new JPanel();
@@ -164,7 +173,7 @@ public class GameMenu extends JPanel {
         for (BirdSkin skin : skins) {
             JPanel skinPanel = new JPanel();
             skinPanel.setLayout(new BoxLayout(skinPanel, BoxLayout.X_AXIS));
-            skinPanel.setBackground(new Color(90, 160, 170));
+            skinPanel.setBackground(new Color(0,0, 0));
             skinPanel.setOpaque(true);
             skinPanel.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(skin == currentSkin ? Color.YELLOW : Color.WHITE, 2),
@@ -206,7 +215,7 @@ public class GameMenu extends JPanel {
                 }
                 priceLabel.setForeground(Color.WHITE);
             }
-            priceLabel.setFont(loadCustomFont("/resources/fonts/Flappy-Bird",15f));
+            priceLabel.setFont(loadCustomFont("/resources/fonts/Flappy-Bird.ttf",15f));
             infoPanel.add(priceLabel);
 
             skinPanel.add(infoPanel);
@@ -289,8 +298,9 @@ public class GameMenu extends JPanel {
 
         JPanel footerPanel = new JPanel();
         footerPanel.setLayout(new BoxLayout(footerPanel, BoxLayout.Y_AXIS));
-        footerPanel.setBackground(null);
         footerPanel.setOpaque(false);
+        footerPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+
 
         JButton backButton = createCenteredButton("Back to Menu");
         backButton.addActionListener(e -> cardLayout.show(mainPanel, "menu"));
@@ -308,14 +318,18 @@ public class GameMenu extends JPanel {
         mainPanel.add(gamePanel, "game");
     }
 
-    private JButton createCenteredButton(String text) {
-        JButton button = new JButton(text);
-        button.setFont(loadCustomFont("FlappybirdyRegular-KaBW.tff",  20f));
-        button.setMaximumSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
-        button.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
-        button.setAlignmentX(Component.CENTER_ALIGNMENT);
-        return button;
-    }
+private JButton createCenteredButton(String text) {
+    JButton button = new JButton(text);
+    button.setFont(loadCustomFont("/resources/fonts/FlappybirdyRegular-KaBW.ttf", 40f));
+    button.setMaximumSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
+    button.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
+    button.setAlignmentX(Component.CENTER_ALIGNMENT);
+    button.setFocusPainted(false);
+    button.setBackground(new Color(255, 255, 255));
+    button.setForeground(Color.BLACK);
+    return button;
+}
+
 
     private Font loadCustomFont(String fontPath, float size) {
         try {
@@ -338,12 +352,12 @@ public class GameMenu extends JPanel {
 
     
 
-    public void returnToMenu(int scoreEarned) {
-        money += scoreEarned;
-        cardLayout.show(mainPanel, "menu");
-        createMenuPanel();
-        SaveManager.save(money, skins, currentSkin == null ? "Normal" : currentSkin.getName());
-    }
+public void returnToMenu(int scoreEarned) {
+    money += scoreEarned;
+    if (menuMoneyLabel != null) menuMoneyLabel.setText(String.valueOf(money));
+    SaveManager.save(money, skins, currentSkin == null ? "Normal" : currentSkin.getName());
+    cardLayout.show(mainPanel, "menu");
+}
 
     public int getMoney() {
         return money;
