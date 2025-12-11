@@ -3,8 +3,13 @@ package game;
 import model.BirdSkin;
 import util.SaveManager;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.*;
 import java.awt.*;
+import java.io.BufferedInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 public class GameMenu extends JPanel {
@@ -15,8 +20,11 @@ public class GameMenu extends JPanel {
     private ArrayList<BirdSkin> skins;
     private FlappyBird gamePanel;
     private int money = 0;
+    private int highScore = 0;
     private BirdSkin currentSkin;
     private ImageIcon coinIcon;
+    private JLabel menuMoneyLabel;
+
 
     public GameMenu(int width, int height) {
         setPreferredSize(new Dimension(width, height));
@@ -24,13 +32,14 @@ public class GameMenu extends JPanel {
         mainPanel = new JPanel(cardLayout);
         setLayout(new BorderLayout());
         add(mainPanel, BorderLayout.CENTER);
+        playMusicLoop();
+
+
 
         // Initialize skins
         skins = new ArrayList<>();
         skins.add(new BirdSkin("Normal","flappybird.png",0));
         skins.add(new BirdSkin("Pacman", "PACMAN.png", 20));
-        skins.add(new BirdSkin("Blue Bird", "bluebird.png", 50));
-        skins.add(new BirdSkin("Red Bird", "redbird.png", 200));
         currentSkin = skins.get(0);
         currentSkin.unlock();
 
@@ -38,6 +47,7 @@ public class GameMenu extends JPanel {
         try {
             SaveManager.SaveData data = SaveManager.load();
             money = data.money;
+            data.highScore = highScore;
             if (data.unlockedCSV != null && data.unlockedCSV.length() > 0) {
                 String[] unlocked = data.unlockedCSV.split(",");
                 for (String name : unlocked) {
@@ -59,15 +69,6 @@ public class GameMenu extends JPanel {
             // ignore
         }
 
-        // coin icon
-        try {
-            java.net.URL res = getClass().getResource("/resources/ui/moeda.png");
-            if (res != null) coinIcon = new ImageIcon(res);
-            else coinIcon = null;
-        } catch (Exception ex) {
-            coinIcon = null;
-        }
-
         createMenuPanel();
         createShopPanel();
         createGamePanel(width, height);
@@ -75,15 +76,33 @@ public class GameMenu extends JPanel {
         cardLayout.show(mainPanel, "menu");
     }
 
+    public class BackgroundPanel extends JPanel {
+
+    private Image backgroundImage;
+
+    public BackgroundPanel(Image backgroundImage) {
+        this.backgroundImage = backgroundImage;
+        setLayout(new BorderLayout());
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+    }
+}
+
     private void createMenuPanel() {
-        JPanel menuPanel = new JPanel();
-        menuPanel.setBackground(new Color(122, 197, 205));
+        Image bg = new ImageIcon(getClass().getResource("/resources/backgrounds/flappy_bird_night_bg.png")).getImage();
+        BackgroundPanel menuPanel = new BackgroundPanel(bg);
+
         menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
 
         menuPanel.add(Box.createVerticalGlue());
 
+        // Add title text
         JLabel title = new JLabel("Flappy Bird");
-        title.setFont(new Font("Arial", Font.BOLD, 36));
+        title.setFont(loadCustomFont("/resources/fonts/FlappybirdyRegular-KaBW.ttf", 150f));
         title.setForeground(Color.WHITE);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         menuPanel.add(title);
@@ -110,18 +129,21 @@ public class GameMenu extends JPanel {
         } else {
             moneyLabel = new JLabel(String.valueOf(money));
         }
-        moneyLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        moneyLabel.setForeground(Color.WHITE);
+        moneyLabel.setFont(loadCustomFont("/resources/fonts/Flappy-Bird.ttf", 40f));
+        moneyLabel.setForeground(Color.YELLOW);
         moneyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         menuPanel.add(moneyLabel);
+
+        menuMoneyLabel = moneyLabel;
+
 
         menuPanel.add(Box.createVerticalGlue());
         mainPanel.add(menuPanel, "menu");
     }
 
     private void createShopPanel() {
-        JPanel shopPanel = new JPanel();
-        shopPanel.setBackground(new Color(122, 197, 205));
+         Image bg = new ImageIcon(getClass().getResource("/resources/backgrounds/flappy_bird_night_bg.png")).getImage();
+        BackgroundPanel shopPanel = new BackgroundPanel(bg);
         shopPanel.setLayout(new BorderLayout());
 
         JPanel headerPanel = new JPanel();
@@ -130,7 +152,7 @@ public class GameMenu extends JPanel {
         headerPanel.setOpaque(false);
 
         JLabel title = new JLabel("Shop");
-        title.setFont(new Font("Arial", Font.BOLD, 32));
+        title.setFont(loadCustomFont("/resources/fonts/Flappy-Bird.ttf", 55f));
         title.setForeground(Color.WHITE);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         headerPanel.add(title);
@@ -144,7 +166,7 @@ public class GameMenu extends JPanel {
         } else {
             moneyLabel = new JLabel(String.valueOf(money));
         }
-        moneyLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        moneyLabel.setFont(loadCustomFont("/resources/fonts/Flappy-Bird.ttf", 55f));
         moneyLabel.setForeground(Color.WHITE);
         moneyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         headerPanel.add(moneyLabel);
@@ -161,7 +183,7 @@ public class GameMenu extends JPanel {
         for (BirdSkin skin : skins) {
             JPanel skinPanel = new JPanel();
             skinPanel.setLayout(new BoxLayout(skinPanel, BoxLayout.X_AXIS));
-            skinPanel.setBackground(new Color(90, 160, 170));
+            skinPanel.setBackground(new Color(0,0, 0));
             skinPanel.setOpaque(true);
             skinPanel.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(skin == currentSkin ? Color.YELLOW : Color.WHITE, 2),
@@ -186,7 +208,7 @@ public class GameMenu extends JPanel {
 
             JLabel nameLabel = new JLabel(skin.getName());
             nameLabel.setForeground(Color.WHITE);
-            nameLabel.setFont(new Font("Arial", Font.BOLD, 16));
+            nameLabel.setFont(loadCustomFont("/resources/fonts/FlappybirdyRegular-KaBW.ttf", 30f));
             infoPanel.add(nameLabel);
 
             JLabel priceLabel;
@@ -203,7 +225,7 @@ public class GameMenu extends JPanel {
                 }
                 priceLabel.setForeground(Color.WHITE);
             }
-            priceLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+            priceLabel.setFont(loadCustomFont("/resources/fonts/Flappy-Bird.ttf",15f));
             infoPanel.add(priceLabel);
 
             skinPanel.add(infoPanel);
@@ -249,7 +271,7 @@ public class GameMenu extends JPanel {
                     actionButton.setText("Selected");
 
                     JOptionPane.showMessageDialog(this, "Selected " + skin.getName());
-                    SaveManager.save(money, skins, currentSkin.getName());
+                    SaveManager.save(money, skins, currentSkin.getName(),highScore);
                 } else if (money >= skin.getPrice()) {
                     money -= skin.getPrice();
                     skin.unlock();
@@ -266,7 +288,7 @@ public class GameMenu extends JPanel {
                     ));
 
                     moneyLabel.setText(String.valueOf(money));
-                    SaveManager.save(money, skins, currentSkin.getName());
+                    SaveManager.save(money, skins, currentSkin.getName(),highScore);
                     JOptionPane.showMessageDialog(this, "Purchased " + skin.getName() + "!");
                 } else {
                     JOptionPane.showMessageDialog(this, "Not enough coins! Need " + skin.getPrice());
@@ -286,8 +308,9 @@ public class GameMenu extends JPanel {
 
         JPanel footerPanel = new JPanel();
         footerPanel.setLayout(new BoxLayout(footerPanel, BoxLayout.Y_AXIS));
-        footerPanel.setBackground(null);
         footerPanel.setOpaque(false);
+        footerPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+
 
         JButton backButton = createCenteredButton("Back to Menu");
         backButton.addActionListener(e -> cardLayout.show(mainPanel, "menu"));
@@ -301,31 +324,97 @@ public class GameMenu extends JPanel {
     }
 
     private void createGamePanel(int width, int height) {
-        gamePanel = new FlappyBird(this);
+        gamePanel = new FlappyBird(this,highScore);
         mainPanel.add(gamePanel, "game");
     }
 
-    private JButton createCenteredButton(String text) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Arial", Font.BOLD, 20));
-        button.setMaximumSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
-        button.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
-        button.setAlignmentX(Component.CENTER_ALIGNMENT);
-        return button;
+private JButton createCenteredButton(String text) {
+    JButton button = new JButton(text);
+    button.setFont(loadCustomFont("/resources/fonts/FlappybirdyRegular-KaBW.ttf", 40f));
+    button.setMaximumSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
+    button.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
+    button.setAlignmentX(Component.CENTER_ALIGNMENT);
+    button.setFocusPainted(false);
+    button.setBackground(new Color(255, 255, 255));
+    button.setForeground(Color.BLACK);
+    return button;
+}
+
+private void stopMusic() {
+    if (musicClip != null && musicClip.isRunning()) {
+        musicClip.stop();
+    }
+}
+
+private void restartMusic() {
+    if (musicClip != null) {
+        musicClip.setFramePosition(0); // volta ao início
+        musicClip.loop(Clip.LOOP_CONTINUOUSLY);
+        musicClip.start();
+    }
+}
+
+
+
+    private Font loadCustomFont(String fontPath, float size) {
+        try {
+            java.net.URL fontUrl = getClass().getResource(fontPath);
+            if (fontUrl != null) {
+                Font customFont = Font.createFont(Font.TRUETYPE_FONT, fontUrl.openStream());
+                return customFont.deriveFont(size);
+            }
+        } catch (Exception e) {
+            System.err.println("Erro ao carregar fonte: " + e.getMessage());
+        }
+        return new Font("Arial", Font.BOLD, (int)size);
     }
 
     public void startGame() {
+        stopMusic();
         cardLayout.show(mainPanel, "game");
         gamePanel.requestFocus();
         gamePanel.startGame();
     }
 
-    public void returnToMenu(int scoreEarned) {
-        money += scoreEarned;
-        cardLayout.show(mainPanel, "menu");
-        createMenuPanel();
-        SaveManager.save(money, skins, currentSkin == null ? "Normal" : currentSkin.getName());
+    private Clip musicClip;
+
+
+private void playMusicLoop() {
+    try {
+        InputStream is = getClass().getResourceAsStream("/resources/audio/MUSICA TESTE.wav");
+
+        if (is == null) {
+            is = getClass().getResourceAsStream("/audio/MUSICA TESTE.wav");
+        }
+
+        if (is == null) {
+            throw new RuntimeException("Arquivo de áudio não encontrado!");
+        }
+
+        AudioInputStream audio = AudioSystem.getAudioInputStream(new BufferedInputStream(is));
+
+        musicClip = AudioSystem.getClip();
+        musicClip.open(audio);
+        musicClip.loop(Clip.LOOP_CONTINUOUSLY);
+        musicClip.start();
+
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+}
+
+    
+
+public void returnToMenu(int scoreEarned) {
+    money += scoreEarned;
+    if (scoreEarned > highScore) {
+        highScore = scoreEarned;
+    }
+    if (menuMoneyLabel != null) menuMoneyLabel.setText(String.valueOf(money));
+    SaveManager.save(money, skins, currentSkin == null ? "Normal" : currentSkin.getName(),highScore);
+    restartMusic();
+    cardLayout.show(mainPanel, "menu");
+}
 
     public int getMoney() {
         return money;
