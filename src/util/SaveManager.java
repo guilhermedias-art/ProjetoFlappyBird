@@ -13,6 +13,7 @@ public class SaveManager {
         public int money;
         public String unlockedCSV;
         public String currentSkinName;
+        public int highScore = 0;
     }
 
     public static SaveData load() {
@@ -35,9 +36,10 @@ public class SaveManager {
         return data;
     }
 
-    public static void save(int money, List<BirdSkin> skins, String currentSkinName) {
+    public static void save(int money, List<BirdSkin> skins, String currentSkinName, int highScore) {
         Properties props = new Properties();
         props.setProperty("money", String.valueOf(money));
+        props.setProperty("highScore", String.valueOf(highScore));
         StringBuilder sb = new StringBuilder();
         for (BirdSkin s : skins) {
             if (s.isUnlocked()) {
@@ -47,6 +49,7 @@ public class SaveManager {
         }
         props.setProperty("unlocked", sb.toString());
         props.setProperty("current", currentSkinName == null ? "Normal" : currentSkinName);
+
 
         try (FileOutputStream out = new FileOutputStream(new File(SAVE_FILE))) {
             props.store(out, "Flappy Bird Save Data");
