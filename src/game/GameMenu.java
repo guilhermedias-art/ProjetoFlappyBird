@@ -3,8 +3,13 @@ package game;
 import model.BirdSkin;
 import util.SaveManager;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.*;
 import java.awt.*;
+import java.io.BufferedInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 public class GameMenu extends JPanel {
@@ -15,6 +20,7 @@ public class GameMenu extends JPanel {
     private ArrayList<BirdSkin> skins;
     private FlappyBird gamePanel;
     private int money = 0;
+    private int highScore = 0;
     private BirdSkin currentSkin;
     private ImageIcon coinIcon;
     private JLabel menuMoneyLabel;
@@ -26,6 +32,9 @@ public class GameMenu extends JPanel {
         mainPanel = new JPanel(cardLayout);
         setLayout(new BorderLayout());
         add(mainPanel, BorderLayout.CENTER);
+        playMusicLoop();
+
+
 
         // Initialize skins
         skins = new ArrayList<>();
@@ -38,6 +47,7 @@ public class GameMenu extends JPanel {
         try {
             SaveManager.SaveData data = SaveManager.load();
             money = data.money;
+            data.highScore = highScore;
             if (data.unlockedCSV != null && data.unlockedCSV.length() > 0) {
                 String[] unlocked = data.unlockedCSV.split(",");
                 for (String name : unlocked) {
@@ -83,7 +93,7 @@ public class GameMenu extends JPanel {
 }
 
     private void createMenuPanel() {
-        Image bg = new ImageIcon(getClass().getResource("/resources/backgrounds/imagem borrada.jpg")).getImage();
+        Image bg = new ImageIcon(getClass().getResource("/resources/backgrounds/flappy_bird_night_bg.png")).getImage();
         BackgroundPanel menuPanel = new BackgroundPanel(bg);
 
         menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
@@ -132,7 +142,7 @@ public class GameMenu extends JPanel {
     }
 
     private void createShopPanel() {
-         Image bg = new ImageIcon(getClass().getResource("/resources/backgrounds/imagem borrada.jpg")).getImage();
+         Image bg = new ImageIcon(getClass().getResource("/resources/backgrounds/flappy_bird_night_bg.png")).getImage();
         BackgroundPanel shopPanel = new BackgroundPanel(bg);
         shopPanel.setLayout(new BorderLayout());
 
@@ -261,7 +271,7 @@ public class GameMenu extends JPanel {
                     actionButton.setText("Selected");
 
                     JOptionPane.showMessageDialog(this, "Selected " + skin.getName());
-                    SaveManager.save(money, skins, currentSkin.getName());
+                    SaveManager.save(money, skins, currentSkin.getName(),highScore);
                 } else if (money >= skin.getPrice()) {
                     money -= skin.getPrice();
                     skin.unlock();
@@ -278,7 +288,7 @@ public class GameMenu extends JPanel {
                     ));
 
                     moneyLabel.setText(String.valueOf(money));
-                    SaveManager.save(money, skins, currentSkin.getName());
+                    SaveManager.save(money, skins, currentSkin.getName(),highScore);
                     JOptionPane.showMessageDialog(this, "Purchased " + skin.getName() + "!");
                 } else {
                     JOptionPane.showMessageDialog(this, "Not enough coins! Need " + skin.getPrice());
@@ -314,7 +324,7 @@ public class GameMenu extends JPanel {
     }
 
     private void createGamePanel(int width, int height) {
-        gamePanel = new FlappyBird(this);
+        gamePanel = new FlappyBird(this,highScore);
         mainPanel.add(gamePanel, "game");
     }
 
@@ -329,6 +339,21 @@ private JButton createCenteredButton(String text) {
     button.setForeground(Color.BLACK);
     return button;
 }
+
+private void stopMusic() {
+    if (musicClip != null && musicClip.isRunning()) {
+        musicClip.stop();
+    }
+}
+
+private void restartMusic() {
+    if (musicClip != null) {
+        musicClip.setFramePosition(0); // volta ao início
+        musicClip.loop(Clip.LOOP_CONTINUOUSLY);
+        musicClip.start();
+    }
+}
+
 
 
     private Font loadCustomFont(String fontPath, float size) {
@@ -345,17 +370,49 @@ private JButton createCenteredButton(String text) {
     }
 
     public void startGame() {
+        stopMusic();
         cardLayout.show(mainPanel, "game");
         gamePanel.requestFocus();
         gamePanel.startGame();
     }
 
+    private Clip musicClip;
+
+
+private void playMusicLoop() {
+    try {
+        InputStream is = getClass().getResourceAsStream("/resources/audio/MUSICA TESTE.wav");
+
+        if (is == null) {
+            is = getClass().getResourceAsStream("/audio/MUSICA TESTE.wav");
+        }
+
+        if (is == null) {
+            throw new RuntimeException("Arquivo de áudio não encontrado!");
+        }
+
+        AudioInputStream audio = AudioSystem.getAudioInputStream(new BufferedInputStream(is));
+
+        musicClip = AudioSystem.getClip();
+        musicClip.open(audio);
+        musicClip.loop(Clip.LOOP_CONTINUOUSLY);
+        musicClip.start();
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+
     
 
 public void returnToMenu(int scoreEarned) {
     money += scoreEarned;
+    if (scoreEarned > highScore) {
+        highScore = scoreEarned;
+    }
     if (menuMoneyLabel != null) menuMoneyLabel.setText(String.valueOf(money));
-    SaveManager.save(money, skins, currentSkin == null ? "Normal" : currentSkin.getName());
+    SaveManager.save(money, skins, currentSkin == null ? "Normal" : currentSkin.getName(),highScore);
+    restartMusic();
     cardLayout.show(mainPanel, "menu");
 }
 
